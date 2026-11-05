@@ -73,3 +73,4 @@ export const apiClient = {
   getUserStats: () => apiClient.request('/stats/user'),
   getDashboardStats: () => apiClient.request('/stats/dashboard'),
 };
+

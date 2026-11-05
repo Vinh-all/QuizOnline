@@ -154,3 +154,4 @@ export default function Navbar({ user, onOpenLogin, onLogout, onNavigate, curren
     </nav>
   );
 }
+

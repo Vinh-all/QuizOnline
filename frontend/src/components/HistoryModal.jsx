@@ -111,3 +111,4 @@ export default function HistoryModal({ onReviewAttempt }) {
     </div>
   );
 }
+

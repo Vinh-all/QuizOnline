@@ -22,6 +22,8 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedPartId, setSelectedPartId] = useState(parts[0]?.id || null);
   const [userAnswers, setUserAnswers] = useState({}); // { [question_id]: { selected_key, selected_option_id } }
+  const [isUnlimitedTime, setIsUnlimitedTime] = useState(true); // Mặc định không giới hạn thời gian
+  const [elapsedTime, setElapsedTime] = useState(0); // Thời gian đã làm bài
   const [timeLeft, setTimeLeft] = useState((test.time_limit_minutes || 60) * 60);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -36,26 +38,25 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
     }
   }, [currentIndex]);
 
-  // Đồng hồ đếm ngược thời gian thực
+  // Bộ đếm thời gian: Không giới hạn (đếm xuôi) HOẶC Bấm giờ (đếm ngược)
   useEffect(() => {
-    if (timeLeft <= 0) {
-      handleAutoSubmit();
-      return;
-    }
-
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleAutoSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
+      if (isUnlimitedTime) {
+        setElapsedTime((prev) => prev + 1);
+      } else {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            handleAutoSubmit();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [isUnlimitedTime]);
 
   // Format MM:SS
   const formatTime = (seconds) => {
@@ -125,11 +126,40 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
           </span>
         </div>
 
-        {/* Countdown Timer Box */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div className={`timer-box ${timeLeft < 300 ? 'timer-warning' : ''}`}>
-            <Clock size={20} />
-            <span>{formatTime(timeLeft)}</span>
+        {/* Timer & Controls Box */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          {/* Nút chuyển đổi chế độ thời gian */}
+          <button 
+            onClick={() => setIsUnlimitedTime(!isUnlimitedTime)}
+            title="Bấm để chuyển đổi giữa Không giới hạn thời gian và Bấm giờ 60 phút"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              fontSize: '0.84rem',
+              fontWeight: 700,
+              background: isUnlimitedTime ? '#ecfdf5' : '#fef3c7',
+              color: isUnlimitedTime ? '#047857' : '#b45309',
+              border: `1.5px solid ${isUnlimitedTime ? '#a7f3d0' : '#fde68a'}`,
+            }}
+          >
+            {isUnlimitedTime ? '🟢 Không giới hạn giờ' : '⏳ Bấm giờ 60 phút'}
+          </button>
+
+          {/* Hộp đồng hồ */}
+          <div 
+            className={`timer-box ${!isUnlimitedTime && timeLeft < 300 ? 'timer-warning' : ''}`}
+            style={{
+              background: isUnlimitedTime ? '#f0fdf4' : undefined,
+              borderColor: isUnlimitedTime ? '#bbf7d0' : undefined,
+            }}
+          >
+            <Clock size={18} color={isUnlimitedTime ? '#047857' : undefined} />
+            <span style={{ color: isUnlimitedTime ? '#047857' : undefined }}>
+              {formatTime(isUnlimitedTime ? elapsedTime : timeLeft)}
+            </span>
           </div>
 
           <button 
@@ -320,3 +350,4 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
     </div>
   );
 }
+

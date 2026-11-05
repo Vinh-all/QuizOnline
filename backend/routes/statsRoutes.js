@@ -12,3 +12,4 @@ router.get('/user', statsController.getUserStats);
 router.get('/dashboard', authorizeRoles('admin', 'teacher'), statsController.getDashboardStats);
 
 module.exports = router;
+

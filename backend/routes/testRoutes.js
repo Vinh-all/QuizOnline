@@ -12,3 +12,4 @@ router.post('/', authenticateToken, authorizeRoles('admin', 'teacher'), testCont
 router.delete('/:id', authenticateToken, authorizeRoles('admin'), testController.deleteTest);
 
 module.exports = router;
+

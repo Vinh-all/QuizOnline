@@ -117,7 +117,7 @@ export default function App() {
                   <CheckCircle size={18} color="#4ade80" /> 200 Câu hỏi chuẩn format
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 600 }}>
-                  <Clock size={18} color="#38bdf8" /> Đếm ngược 60 phút
+                  <Clock size={18} color="#38bdf8" /> Luyện tập không giới hạn thời gian (Tùy chọn bấm giờ)
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 600 }}>
                   <ShieldCheck size={18} color="#facc15" /> Chấm điểm & Bảo mật đề thi
@@ -202,3 +202,4 @@ export default function App() {
     </div>
   );
 }
+

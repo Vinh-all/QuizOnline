@@ -12,3 +12,4 @@ router.get('/history', examController.getExamHistory);
 router.get('/attempt/:attempt_id', examController.getAttemptDetail);
 
 module.exports = router;
+

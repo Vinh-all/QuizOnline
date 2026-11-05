@@ -80,10 +80,10 @@ export default function TestCard({ test, index, onStartTest }) {
         </div>
 
         {/* Meta Stats Badges */}
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-            <Clock size={16} color="var(--primary)" />
-            {test.time_limit_minutes} Phút
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', color: '#047857', fontWeight: 700, background: '#ecfdf5', padding: '4px 10px', borderRadius: '6px' }}>
+            <Clock size={16} color="#047857" />
+            Không Giới Hạn Thời Gian
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: 600 }}>
             <HelpCircle size={16} color="var(--primary)" />
@@ -116,3 +116,4 @@ export default function TestCard({ test, index, onStartTest }) {
     </div>
   );
 }
+
