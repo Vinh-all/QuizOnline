@@ -35,11 +35,20 @@ export default function App() {
     loadTests();
   }, []);
 
-  // Xử lý khi nhấn bắt đầu thi (Hỗ trợ cả đề HOẶC luyện riêng từng Part, Có hoặc Không giới hạn giờ)
+  // Xử lý khi nhấn bắt đầu thi (Tự động cấp quyền học sinh nếu chưa đăng nhập để trải nghiệm ngay)
   const handleStartTest = async (test, part_number = null, is_timed = false) => {
-    if (!user) {
-      setIsLoginOpen(true);
-      return;
+    let currentUser = user;
+    if (!currentUser) {
+      try {
+        const loginRes = await apiClient.login('student@quizonline.com', '123456');
+        apiClient.setToken(loginRes.token);
+        apiClient.setUser(loginRes.user);
+        setUser(loginRes.user);
+        currentUser = loginRes.user;
+      } catch (err) {
+        setIsLoginOpen(true);
+        return;
+      }
     }
 
     try {

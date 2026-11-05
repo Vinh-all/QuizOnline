@@ -187,28 +187,41 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
       <div className="exam-layout">
         {/* Box Cột Trái: BÀI ĐỌC (Passage Box) */}
         <div className="passage-panel">
-          {/* Part Selection Tabs */}
-          <div className="passage-tabs">
-            {parts.map((p) => (
-              <button
-                key={p.id}
-                className={`passage-tab-btn ${selectedPartId === p.id ? 'active' : ''}`}
-                onClick={() => setSelectedPartId(p.id)}
-              >
-                Part {p.part_number}
-              </button>
-            ))}
+          {/* Part Selection Tabs (Nếu luyện cả đề thì có 4 tabs, nếu luyện 1 part thì hiện nhãn Part đó) */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+            {parts.length > 1 ? (
+              <div className="passage-tabs" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>
+                {parts.map((p) => (
+                  <button
+                    key={p.id}
+                    className={`passage-tab-btn ${selectedPartId === p.id ? 'active' : ''}`}
+                    onClick={() => setSelectedPartId(p.id)}
+                  >
+                    Part {p.part_number}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--primary)', background: 'var(--primary-light)', padding: '6px 14px', borderRadius: '8px' }}>
+                🎯 Đang luyện riêng Part {activePart.part_number} (10 câu trắc nghiệm)
+              </span>
+            )}
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              📄 Đoạn văn bản bài đọc
+            </span>
           </div>
 
           {/* Title of Reading Section */}
-          <h3 style={{ fontSize: '1.18rem', fontWeight: 800, color: 'var(--dark)', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--dark)', marginBottom: '16px', lineHeight: 1.4 }}>
             {activePart.title}
           </h3>
 
-          {/* Reading Passage Text */}
+          {/* Reading Passage Text with clean paragraph split */}
           <div className="passage-content">
-            {activePart.passage_text.split('\n\n').map((paragraph, idx) => (
-              <p key={idx}>{paragraph}</p>
+            {activePart.passage_text.split(/\r?\n\s*\r?\n/).map((paragraph, idx) => (
+              <p key={idx} style={{ marginBottom: '14px', textAlign: 'justify', lineHeight: 1.75 }}>
+                {paragraph}
+              </p>
             ))}
           </div>
         </div>
@@ -221,11 +234,14 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
               <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)', padding: '4px 10px', borderRadius: '6px' }}>
                 Câu {currentIndex + 1} / {totalCount} (Part {currentQuestion?.part_number})
               </span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                {activePart.title.length > 25 ? activePart.title.slice(0, 25) + '...' : activePart.title}
+              </span>
             </div>
 
             {/* Question Text */}
-            <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--dark)', marginBottom: '20px', lineHeight: 1.5 }}>
-              {currentQuestion?.question_number}. {currentQuestion?.question_text}
+            <h4 style={{ fontSize: '1.08rem', fontWeight: 700, color: 'var(--dark)', marginBottom: '20px', lineHeight: 1.5 }}>
+              Câu {currentQuestion?.question_number}: {currentQuestion?.question_text}
             </h4>
 
             {/* 4 Options Buttons */}
