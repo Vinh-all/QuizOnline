@@ -35,7 +35,7 @@ function ExamTimer({ isUnlimitedTime, initialTimeLeft, onToggleMode, onTimeOut }
   return (
     <>
       {/* Nút chuyển đổi chế độ thời gian */}
-      <button 
+      <button
         onClick={onToggleMode}
         title="Bấm để chuyển đổi giữa Không giới hạn thời gian và Bấm giờ"
         style={{
@@ -56,7 +56,7 @@ function ExamTimer({ isUnlimitedTime, initialTimeLeft, onToggleMode, onTimeOut }
       </button>
 
       {/* Hộp đồng hồ */}
-      <div 
+      <div
         className={`timer-box ${!isUnlimitedTime && timeLeft < 300 ? 'timer-warning' : ''}`}
         style={{
           background: isUnlimitedTime ? '#f0fdf4' : undefined,
@@ -180,7 +180,7 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
   return (
     <div className="container" style={{ paddingBottom: '30px' }}>
       {/* Top Floating Exam Header */}
-      <div 
+      <div
         className="exam-header-bar"
         style={{
           display: 'flex',
@@ -212,7 +212,7 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
             onTimeOut={handleAutoSubmit}
           />
 
-          <button 
+          <button
             onClick={() => setShowSubmitModal(true)}
             style={{
               display: 'flex',
@@ -236,19 +236,19 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
 
       {/* Thanh chuyển đổi linh hoạt trên Điện thoại (iPhone / Android) */}
       <div className="mobile-view-tabs">
-        <button 
+        <button
           className={`mobile-tab-btn ${mobileTab === 'question' ? 'active' : ''}`}
           onClick={() => setMobileTab('question')}
         >
           ✍️ Câu Hỏi ({currentIndex + 1}/{totalCount})
         </button>
-        <button 
+        <button
           className={`mobile-tab-btn ${mobileTab === 'passage' ? 'active' : ''}`}
           onClick={() => setMobileTab('passage')}
         >
           📄 Bài Đọc (Part {activePart.part_number})
         </button>
-        <button 
+        <button
           className={`mobile-tab-btn ${mobileTab === 'both' ? 'active' : ''}`}
           onClick={() => setMobileTab('both')}
         >
@@ -385,8 +385,8 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
                     gap: '6px',
                     padding: '10px 18px',
                     borderRadius: '8px',
-                    background: allAnswered 
-                      ? 'linear-gradient(135deg, #059669, #10b981)' 
+                    background: allAnswered
+                      ? 'linear-gradient(135deg, #059669, #10b981)'
                       : '#f1f5f9',
                     color: allAnswered ? '#ffffff' : '#475569',
                     border: allAnswered ? 'none' : '1.5px solid #cbd5e1',
@@ -445,14 +445,14 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
             </p>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button 
+              <button
                 onClick={() => setShowSubmitModal(false)}
                 disabled={submitting}
                 style={{ padding: '10px 18px', borderRadius: '8px', background: '#f1f5f9', fontWeight: 600, cursor: 'pointer' }}
               >
                 Tiếp tục làm bài
               </button>
-              <button 
+              <button
                 onClick={doSubmit}
                 disabled={submitting}
                 style={{ padding: '10px 20px', borderRadius: '8px', background: 'var(--primary)', color: '#ffffff', fontWeight: 700, cursor: 'pointer' }}

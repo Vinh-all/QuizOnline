@@ -29,24 +29,32 @@ export const apiClient = {
     }
 
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-    const res = await fetch(url, { ...options, headers });
-    const data = await res.json().catch(() => ({}));
+    
+    try {
+      const res = await fetch(url, { ...options, headers });
+      const data = await res.json().catch(() => ({}));
 
-    if (!res.ok) {
-      throw new Error(data.message || `Lỗi yêu cầu (${res.status})`);
+      if (!res.ok) {
+        throw new Error(data.message || `Lỗi máy chủ (${res.status})`);
+      }
+      return data;
+    } catch (err) {
+      if (err.name === 'TypeError' || err.message === 'Failed to fetch') {
+        throw new Error('Không thể kết nối đến máy chủ Backend (Cổng 5000)! Vui lòng kiểm tra lại kết nối mạng hoặc đảm bảo máy chủ backend đang chạy.');
+      }
+      throw err;
     }
-    return data;
   },
 
   // Auth
   login: (email, password) => apiClient.request('/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
   }),
 
   register: (email, password, full_name, role) => apiClient.request('/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password, full_name, role }),
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password, full_name: full_name.trim(), role }),
   }),
 
   getMe: () => apiClient.request('/auth/me'),
@@ -73,4 +81,3 @@ export const apiClient = {
   getUserStats: () => apiClient.request('/stats/user'),
   getDashboardStats: () => apiClient.request('/stats/dashboard'),
 };
-

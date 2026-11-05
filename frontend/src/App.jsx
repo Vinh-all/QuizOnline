@@ -12,7 +12,7 @@ import { Sparkles, BookOpen, Clock, ShieldCheck, CheckCircle } from 'lucide-reac
 export default function App() {
   const [user, setUser] = useState(apiClient.getUser());
   const [currentView, setCurrentView] = useState('tests'); // 'tests' | 'exam' | 'result' | 'history' | 'admin'
-  
+
   // Khởi tạo tests từ sessionStorage (Stale-While-Revalidate) giúp tải tức thì 0ms
   const [tests, setTests] = useState(() => {
     try {
@@ -25,7 +25,7 @@ export default function App() {
   const [loadingTests, setLoadingTests] = useState(() => {
     return !sessionStorage.getItem('quizonline_tests');
   });
-  
+
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [examData, setExamData] = useState(null);
   const [activeAttemptId, setActiveAttemptId] = useState(null);
@@ -131,7 +131,7 @@ export default function App() {
       {currentView === 'tests' && (
         <main className="container animate-fade" style={{ padding: '40px 24px 60px' }}>
           {/* Hero Banner */}
-          <div 
+          <div
             className="hero-banner"
             style={{
               background: 'linear-gradient(135deg, #312e81, #4338ca 60%, #6366f1)',
@@ -155,7 +155,7 @@ export default function App() {
                 ✍️ Tác giả: Lý Anh Vinh
               </div>
               <p style={{ fontSize: '1.05rem', opacity: 0.9, lineHeight: 1.6, marginBottom: '24px' }}>
-                Trọn bộ 5 đề thi với 20 bài đọc tiếng Anh và 200 câu hỏi trắc nghiệm có lời giải thích chi tiết, 
+                Trọn bộ 5 đề thi với 20 bài đọc tiếng Anh và 200 câu hỏi trắc nghiệm có lời giải thích chi tiết,
                 dẫn chứng bài đọc và dịch nghĩa song ngữ Anh - Việt. Hỗ trợ bấm giờ, trộn đề và chấm điểm tự động.
               </p>
 
@@ -196,11 +196,11 @@ export default function App() {
           ) : (
             <div className="tests-grid">
               {tests.map((test, idx) => (
-                <TestCard 
-                  key={test.id} 
-                  test={test} 
-                  index={idx} 
-                  onStartTest={handleStartTest} 
+                <TestCard
+                  key={test.id}
+                  test={test}
+                  index={idx}
+                  onStartTest={handleStartTest}
                 />
               ))}
             </div>
@@ -241,6 +241,7 @@ export default function App() {
       {/* Login & Register Modal */}
       {isLoginOpen && (
         <LoginModal
+          isOpen={isLoginOpen}
           onClose={() => setIsLoginOpen(false)}
           onLoginSuccess={(userData) => {
             setUser(userData);
