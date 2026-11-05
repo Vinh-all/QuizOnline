@@ -1,8 +1,17 @@
 const db = require('../database/db');
+const cache = require('../utils/cache');
 
-// Lấy danh sách tất cả các bài thi (Practice Tests)
+// Lấy danh sách tất cả các bài thi (Practice Tests) - Đã tối ưu Cache In-Memory
 exports.getAllTests = async (req, res) => {
   try {
+    const userRole = req.user ? req.user.role : 'student';
+    const cacheKey = `tests_list_${userRole}`;
+    const cachedData = cache.get(cacheKey);
+
+    if (cachedData) {
+      return res.json(cachedData);
+    }
+
     const query = `
       SELECT 
         t.id, 
@@ -22,13 +31,16 @@ exports.getAllTests = async (req, res) => {
       GROUP BY t.id
       ORDER BY t.title ASC;
     `;
-    const userRole = req.user ? req.user.role : 'student';
     const result = await db.query(query, [userRole]);
-
-    return res.json({
+    const responsePayload = {
       success: true,
       tests: result.rows,
-    });
+    };
+
+    // Cache trong 5 phút
+    cache.set(cacheKey, responsePayload, 300);
+
+    return res.json(responsePayload);
   } catch (error) {
     console.error('Lỗi lấy danh sách bài thi:', error);
     return res.status(500).json({
@@ -38,9 +50,15 @@ exports.getAllTests = async (req, res) => {
   }
 };
 
-// Lấy thông tin chi tiết bài thi theo ID (dành cho quản lý hoặc xem cấu trúc)
+// Lấy thông tin chi tiết bài thi theo ID - Tối ưu 1 câu truy vấn SQL json_agg duy nhất
 exports.getTestById = async (req, res) => {
   const { id } = req.params;
+  const cacheKey = `test_detail_${id}`;
+  const cachedTest = cache.get(cacheKey);
+
+  if (cachedTest) {
+    return res.json(cachedTest);
+  }
 
   try {
     const testRes = await db.query('SELECT * FROM tests WHERE id = $1', [id]);
@@ -53,46 +71,53 @@ exports.getTestById = async (req, res) => {
 
     const test = testRes.rows[0];
 
-    // Lấy các phần đọc (test_parts)
-    const partsRes = await db.query(
-      'SELECT id, part_number, title, passage_text FROM test_parts WHERE test_id = $1 ORDER BY part_number ASC',
-      [id]
-    );
+    // Truy vấn hợp nhất 1 lần duy nhất cho toàn bộ Parts, Questions và Options
+    const query = `
+      SELECT 
+        tp.id,
+        tp.part_number,
+        tp.title,
+        tp.passage_text,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', q.id,
+              'question_number', q.question_number,
+              'question_text', q.question_text,
+              'options', (
+                SELECT json_agg(
+                  json_build_object(
+                    'id', qo.id,
+                    'option_key', qo.option_key,
+                    'option_text', qo.option_text
+                  ) ORDER BY qo.option_key ASC
+                )
+                FROM question_options qo
+                WHERE qo.question_id = q.id
+              )
+            ) ORDER BY q.question_number ASC
+          ) FILTER (WHERE q.id IS NOT NULL),
+          '[]'::json
+        ) AS questions
+      FROM test_parts tp
+      LEFT JOIN questions q ON q.test_part_id = tp.id
+      WHERE tp.test_id = $1
+      GROUP BY tp.id, tp.part_number, tp.title, tp.passage_text
+      ORDER BY tp.part_number ASC;
+    `;
 
-    const parts = [];
-    for (const part of partsRes.rows) {
-      // Lấy câu hỏi
-      const questionsRes = await db.query(
-        'SELECT id, question_number, question_text FROM questions WHERE test_part_id = $1 ORDER BY question_number ASC',
-        [part.id]
-      );
+    const partsRes = await db.query(query, [id]);
 
-      const questions = [];
-      for (const q of questionsRes.rows) {
-        // Lấy phương án
-        const optionsRes = await db.query(
-          'SELECT id, option_key, option_text FROM question_options WHERE question_id = $1 ORDER BY option_key ASC',
-          [q.id]
-        );
-        questions.push({
-          ...q,
-          options: optionsRes.rows,
-        });
-      }
-
-      parts.push({
-        ...part,
-        questions,
-      });
-    }
-
-    return res.json({
+    const responsePayload = {
       success: true,
       test: {
         ...test,
-        parts,
+        parts: partsRes.rows,
       },
-    });
+    };
+
+    cache.set(cacheKey, responsePayload, 600);
+    return res.json(responsePayload);
   } catch (error) {
     console.error('Lỗi lấy chi tiết bài thi:', error);
     return res.status(500).json({
@@ -121,6 +146,8 @@ exports.createTest = async (req, res) => {
       [title, description, time_limit_minutes, shuffle_questions, shuffle_options, req.user.id]
     );
 
+    cache.clear(); // Xóa bộ đệm để làm mới danh sách đề thi
+
     return res.status(201).json({
       success: true,
       message: 'Tạo bài thi mới thành công!',
@@ -148,6 +175,8 @@ exports.deleteTest = async (req, res) => {
       });
     }
 
+    cache.clear();
+
     return res.json({
       success: true,
       message: 'Đã xóa bài thi thành công!',
@@ -160,4 +189,3 @@ exports.deleteTest = async (req, res) => {
     });
   }
 };
-

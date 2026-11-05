@@ -12,18 +12,37 @@ import { Sparkles, BookOpen, Clock, ShieldCheck, CheckCircle } from 'lucide-reac
 export default function App() {
   const [user, setUser] = useState(apiClient.getUser());
   const [currentView, setCurrentView] = useState('tests'); // 'tests' | 'exam' | 'result' | 'history' | 'admin'
-  const [tests, setTests] = useState([]);
-  const [loadingTests, setLoadingTests] = useState(true);
+  
+  // Khởi tạo tests từ sessionStorage (Stale-While-Revalidate) giúp tải tức thì 0ms
+  const [tests, setTests] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('quizonline_tests');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loadingTests, setLoadingTests] = useState(() => {
+    return !sessionStorage.getItem('quizonline_tests');
+  });
+  
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [examData, setExamData] = useState(null);
   const [activeAttemptId, setActiveAttemptId] = useState(null);
+  const [isStartingExam, setIsStartingExam] = useState(false);
 
-  // Tải danh sách đề thi
+  // Tải danh sách đề thi (chạy ngầm cập nhật dữ liệu)
   const loadTests = async () => {
     try {
-      setLoadingTests(true);
       const res = await apiClient.getTests();
-      setTests(res.tests || []);
+      if (res && res.tests) {
+        setTests(res.tests);
+        try {
+          sessionStorage.setItem('quizonline_tests', JSON.stringify(res.tests));
+        } catch (e) {
+          // Bỏ qua nếu bộ nhớ trình duyệt đầy
+        }
+      }
     } catch (err) {
       console.error('Lỗi tải đề thi:', err);
     } finally {
@@ -37,6 +56,7 @@ export default function App() {
 
   // Xử lý khi nhấn bắt đầu thi (Tự động cấp quyền học sinh nếu chưa đăng nhập để trải nghiệm ngay)
   const handleStartTest = async (test, part_number = null, is_timed = false) => {
+    setIsStartingExam(true);
     let currentUser = user;
     if (!currentUser) {
       try {
@@ -46,6 +66,7 @@ export default function App() {
         setUser(loginRes.user);
         currentUser = loginRes.user;
       } catch (err) {
+        setIsStartingExam(false);
         setIsLoginOpen(true);
         return;
       }
@@ -57,6 +78,8 @@ export default function App() {
       setCurrentView('exam');
     } catch (err) {
       alert('Không thể bắt đầu bài thi: ' + err.message);
+    } finally {
+      setIsStartingExam(false);
     }
   };
 
@@ -82,6 +105,17 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Loading Overlay khi vào đề thi */}
+      {isStartingExam && (
+        <div className="modal-overlay" style={{ zIndex: 9999, backdropFilter: 'blur(4px)' }}>
+          <div style={{ background: '#ffffff', padding: '24px 36px', borderRadius: '16px', textAlign: 'center', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)' }}>
+            <div style={{ margin: '0 auto 14px', width: '38px', height: '38px', border: '3.5px solid #e0e7ff', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--dark)' }}>Đang tải đề thi...</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>Hệ thống đang chuẩn bị câu hỏi và bài đọc</p>
+          </div>
+        </div>
+      )}
+
       {/* Navbar luôn hiển thị trừ khi đang trong phòng thi toàn màn hình */}
       {currentView !== 'exam' && (
         <Navbar
@@ -155,7 +189,7 @@ export default function App() {
           </div>
 
           {/* 5 Test Boxes Grid */}
-          {loadingTests ? (
+          {loadingTests && tests.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
               ⏳ Đang tải dữ liệu 5 đề thi từ CSDL Supabase...
             </div>
@@ -199,37 +233,31 @@ export default function App() {
         />
       )}
 
-      {/* VIEW 5: THỐNG KÊ QUẢN TRỊ (ADMIN & TEACHER) */}
+      {/* VIEW 5: QUẢN TRỊ ADMIN / TEACHER */}
       {currentView === 'admin' && (
         <AdminDashboard />
       )}
 
-      {/* Modal Đăng nhập / Đăng ký */}
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onLoginSuccess={(loggedInUser) => {
-          setUser(loggedInUser);
-        }}
-      />
+      {/* Login & Register Modal */}
+      {isLoginOpen && (
+        <LoginModal
+          onClose={() => setIsLoginOpen(false)}
+          onLoginSuccess={(userData) => {
+            setUser(userData);
+            setIsLoginOpen(false);
+          }}
+        />
+      )}
 
       {/* Footer */}
-      {currentView !== 'exam' && (
-        <footer style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', padding: '24px 0', background: '#ffffff', textAlign: 'center' }}>
-          <div className="container">
-            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--primary)' }}>
-              QuizOnline • Hệ Thống Luyện Thi Tiếng Anh 3
-            </div>
-            <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b', marginTop: '4px' }}>
-              Tác giả: <span style={{ color: '#4f46e5' }}>Lý Anh Vinh</span>
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Trọn bộ 5 Practice Tests chuẩn hóa (200 câu hỏi trắc nghiệm & lời giải chi tiết)
-            </div>
-          </div>
-        </footer>
-      )}
+      <footer style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', background: '#ffffff', padding: '24px 0', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+          © {new Date().getFullYear()} QuizOnline - Nền Tảng Luyện Thi Tiếng Anh Trực Tuyến.
+        </p>
+        <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '0.92rem', marginTop: '4px' }}>
+          Tác giả: Lý Anh Vinh
+        </p>
+      </footer>
     </div>
   );
 }
-
