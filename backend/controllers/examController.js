@@ -330,7 +330,7 @@ exports.getAttemptDetail = async (req, res) => {
 
     const attempt = attemptRes.rows[0];
 
-    // Lấy câu hỏi, đáp án đã chọn và lời giải (lọc theo part_number nếu có)
+    // Lấy câu hỏi, 4 phương án lựa chọn, đáp án đã chọn và lời giải (lọc theo part_number nếu có)
     const query = `
       SELECT 
         q.id AS question_id,
@@ -343,7 +343,19 @@ exports.getAttemptDetail = async (req, res) => {
         ans.selected_key,
         ans.is_correct,
         correct_qo.option_key AS correct_key,
-        correct_qo.option_text AS correct_text
+        correct_qo.option_text AS correct_text,
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', qo.id,
+              'option_key', qo.option_key,
+              'option_text', qo.option_text,
+              'is_correct', qo.is_correct
+            ) ORDER BY qo.option_key ASC
+          )
+          FROM question_options qo
+          WHERE qo.question_id = q.id
+        ) AS options
       FROM questions q
       JOIN test_parts tp ON tp.id = q.test_part_id
       LEFT JOIN exam_answers ans ON ans.question_id = q.id AND ans.attempt_id = $1

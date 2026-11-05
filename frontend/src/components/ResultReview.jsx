@@ -195,25 +195,101 @@ export default function ResultReview({ attemptId, onBackToTests, onRetake }) {
               </div>
 
               {/* Question Text */}
-              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--dark)', marginBottom: '16px' }}>
-                {q.question_text}
+              <h4 style={{ fontSize: '1.08rem', fontWeight: 700, color: 'var(--dark)', marginBottom: '16px', lineHeight: 1.5 }}>
+                Câu {q.question_number}: {q.question_text}
               </h4>
 
-              {/* Answer Comparison */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '18px' }}>
-                <div style={{ background: isCorrect ? '#f0fdf4' : '#fef2f2', padding: '12px 16px', borderRadius: '8px', border: `1px solid ${isCorrect ? '#bbf7d0' : '#fecaca'}` }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Bạn đã chọn:</div>
-                  <div style={{ fontSize: '1rem', fontWeight: 800, color: isCorrect ? '#16a34a' : '#dc2626', marginTop: '4px' }}>
-                    {q.selected_key ? `Đáp án ${q.selected_key}` : '(Chưa chọn)'}
-                  </div>
-                </div>
+              {/* HIỂN THỊ TRỌN VẸN CẢ 4 ĐÁP ÁN (A, B, C, D) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+                {q.options && q.options.length > 0 ? (
+                  q.options.map((opt) => {
+                    const isSelected = q.selected_key && q.selected_key.toUpperCase() === opt.option_key.toUpperCase();
+                    const isOptCorrect = opt.is_correct || (q.correct_key && q.correct_key.toUpperCase() === opt.option_key.toUpperCase());
 
-                <div style={{ background: '#f0fdf4', padding: '12px 16px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Đáp án chuẩn:</div>
-                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#16a34a', marginTop: '4px' }}>
-                    Đáp án {q.correct_key}: {q.correct_text}
+                    let bgColor = '#ffffff';
+                    let borderColor = 'var(--border-color)';
+                    let textColor = 'var(--text-main)';
+                    let badge = null;
+
+                    if (isOptCorrect) {
+                      bgColor = '#f0fdf4';
+                      borderColor = '#86efac';
+                      textColor = '#166534';
+                      badge = (
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#16a34a', background: '#dcfce7', padding: '3px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <CheckCircle size={14} /> {isSelected ? 'Bạn đã chọn (Chính xác)' : 'Đáp án đúng'}
+                        </span>
+                      );
+                    } else if (isSelected && !isOptCorrect) {
+                      bgColor = '#fef2f2';
+                      borderColor = '#fca5a5';
+                      textColor = '#991b1b';
+                      badge = (
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#dc2626', background: '#fee2e2', padding: '3px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <XCircle size={14} /> Bạn đã chọn (Sai)
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={opt.option_key}
+                        style={{
+                          background: bgColor,
+                          border: `1.5px solid ${borderColor}`,
+                          borderRadius: '10px',
+                          padding: '12px 16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                          <span
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '8px',
+                              background: isOptCorrect ? '#16a34a' : isSelected ? '#dc2626' : '#f1f5f9',
+                              color: isOptCorrect || isSelected ? '#ffffff' : 'var(--text-main)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '0.85rem',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {opt.option_key}
+                          </span>
+                          <span style={{ fontSize: '0.96rem', color: textColor, fontWeight: isOptCorrect || isSelected ? 700 : 500, lineHeight: 1.4 }}>
+                            {opt.option_text}
+                          </span>
+                        </div>
+
+                        {badge && <div>{badge}</div>}
+                      </div>
+                    );
+                  })
+                ) : (
+                  // Dự phòng nếu API cũ chưa nạp mảng options
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div style={{ background: isCorrect ? '#f0fdf4' : '#fef2f2', padding: '12px 16px', borderRadius: '8px', border: `1px solid ${isCorrect ? '#bbf7d0' : '#fecaca'}` }}>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Bạn đã chọn:</div>
+                      <div style={{ fontSize: '1rem', fontWeight: 800, color: isCorrect ? '#16a34a' : '#dc2626', marginTop: '4px' }}>
+                        {q.selected_key ? `Đáp án ${q.selected_key}` : '(Chưa chọn)'}
+                      </div>
+                    </div>
+                    <div style={{ background: '#f0fdf4', padding: '12px 16px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Đáp án chuẩn:</div>
+                      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#16a34a', marginTop: '4px' }}>
+                        Đáp án {q.correct_key}: {q.correct_text}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Bilingual Explanation Box */}
