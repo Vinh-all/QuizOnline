@@ -32,3 +32,4 @@ class MemoryCache {
 }
 
 module.exports = new MemoryCache(600); // Mặc định lưu 10 phút
+
