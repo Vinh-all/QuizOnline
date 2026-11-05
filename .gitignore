@@ -15,7 +15,9 @@ yarn-error.log*
 dist/
 build/
 
-# IDE & OS files
+# Office temp files
+~$*
+
 .DS_Store
 Thumbs.db
 .vscode/
