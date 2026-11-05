@@ -140,9 +140,9 @@ export default function ResultReview({ attemptId, onBackToTests, onRetake }) {
             border: '1px solid var(--border-color)',
           }}
         >
-          Tất cả 40 câu
+          {attempt.part_number ? `Toàn bộ ${attempt.total_questions} câu của Part ${attempt.part_number}` : `Tất cả ${attempt.total_questions || 40} câu`}
         </button>
-        {[1, 2, 3, 4].map(partNum => (
+        {!attempt.part_number && [1, 2, 3, 4].map(partNum => (
           <button 
             key={partNum}
             onClick={() => setActivePartFilter(partNum)}

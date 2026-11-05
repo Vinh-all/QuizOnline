@@ -303,10 +303,10 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
               </button>
             </div>
 
-            {/* 40 Question Palette Box */}
+            {/* Question Palette Box */}
             <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
               <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                Danh sách 40 câu hỏi:
+                {totalCount === 10 ? 'Danh sách 10 câu hỏi của Part này:' : 'Danh sách 40 câu hỏi (4 Parts):'}
               </div>
               <div className="palette-grid">
                 {flatQuestions.map((q, idx) => {

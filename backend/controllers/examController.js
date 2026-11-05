@@ -14,6 +14,7 @@ function shuffleArray(array) {
 exports.startExam = async (req, res) => {
   const { test_id, part_number = null, is_timed = false } = req.body;
   const user_id = req.user.id;
+  const parsedPartNum = (part_number !== null && part_number !== undefined && part_number !== '') ? parseInt(part_number, 10) : null;
 
   if (!test_id) {
     return res.status(400).json({
@@ -37,9 +38,9 @@ exports.startExam = async (req, res) => {
     let partsQuery = 'SELECT id, part_number, title, passage_text FROM test_parts WHERE test_id = $1';
     const queryParams = [test_id];
 
-    if (part_number) {
+    if (parsedPartNum) {
       partsQuery += ' AND part_number = $2 ORDER BY part_number ASC';
-      queryParams.push(part_number);
+      queryParams.push(parsedPartNum);
     } else {
       partsQuery += ' ORDER BY part_number ASC';
     }
@@ -48,7 +49,7 @@ exports.startExam = async (req, res) => {
     if (partsRes.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: `Không tìm thấy Phần thi số ${part_number} trong đề này!`,
+        message: `Không tìm thấy Phần thi số ${parsedPartNum} trong đề này!`,
       });
     }
 
@@ -101,14 +102,14 @@ exports.startExam = async (req, res) => {
 
     const totalQuestions = globalQuestions.length;
     // Thời gian: Nếu luyện 1 part: 15 phút nếu có giới hạn; nếu cả đề: 60 phút
-    const timeLimitMinutes = is_timed ? (part_number ? 15 : test.time_limit_minutes) : 0;
+    const timeLimitMinutes = is_timed ? (parsedPartNum ? 15 : test.time_limit_minutes) : 0;
 
     // 3. Tạo một lượt thi mới trong exam_attempts
     const attemptRes = await db.query(
       `INSERT INTO exam_attempts (user_id, test_id, part_number, started_at, total_questions, status)
        VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4, 'in_progress')
        RETURNING *`,
-      [user_id, test_id, part_number || null, totalQuestions]
+      [user_id, test_id, parsedPartNum || null, totalQuestions]
     );
     const attempt = attemptRes.rows[0];
 
@@ -116,11 +117,11 @@ exports.startExam = async (req, res) => {
       success: true,
       message: 'Bắt đầu làm bài thi thành công!',
       attempt_id: attempt.id,
-      part_number: part_number || null,
+      part_number: parsedPartNum || null,
       is_timed: !!is_timed,
       test: {
         id: test.id,
-        title: part_number ? `${test.title} - Part ${part_number}` : test.title,
+        title: parsedPartNum ? `${test.title} - Part ${parsedPartNum}` : test.title,
         raw_title: test.title,
         description: test.description,
         time_limit_minutes: timeLimitMinutes,
