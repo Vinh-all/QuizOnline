@@ -10,6 +10,7 @@ const examRoutes = require('./routes/examRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 
 const app = express();
+const { pool } = require('./database/db');
 const PORT = process.env.PORT || 5000;
 
 // Middleware nén dữ liệu HTTP Gzip để tăng tốc độ tải mạng
@@ -34,6 +35,32 @@ app.get('/api/health', (req, res) => {
     service: 'QuizOnline Backend API',
     database: 'Supabase PostgreSQL',
   });
+});
+// API kiểm tra kết nối Supabase PostgreSQL
+app.get('/api/db-health', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT current_database() AS database,
+             current_user AS user,
+             NOW() AS server_time
+    `);
+
+    res.json({
+      success: true,
+      message: 'Kết nối Supabase thành công từ Render!',
+      database: result.rows[0].database,
+      user: result.rows[0].user,
+      server_time: result.rows[0].server_time
+    });
+  } catch (error) {
+    console.error('Database health check failed:', error.message);
+
+    res.status(500).json({
+      success: false,
+      message: 'Không thể kết nối Supabase',
+      error: error.message
+    });
+  }
 });
 
 // Đăng ký các Route API
