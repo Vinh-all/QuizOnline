@@ -27,6 +27,7 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
   const [timeLeft, setTimeLeft] = useState((test.time_limit_minutes || (examData.part_number ? 15 : 60)) * 60);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [mobileTab, setMobileTab] = useState('question'); // Chế độ hiển thị trên điện thoại: 'question' | 'passage' | 'both'
 
   // Câu hỏi hiện tại
   const currentQuestion = flatQuestions[currentIndex] || null;
@@ -121,6 +122,7 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
     <div className="container" style={{ paddingBottom: '30px' }}>
       {/* Top Floating Exam Header */}
       <div 
+        className="exam-header-bar"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -143,7 +145,7 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
         </div>
 
         {/* Timer & Controls Box */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        <div className="exam-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
           {/* Nút chuyển đổi chế độ thời gian */}
           <button 
             onClick={() => setIsUnlimitedTime(!isUnlimitedTime)}
@@ -199,8 +201,30 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
         </div>
       </div>
 
+      {/* Thanh chuyển đổi linh hoạt trên Điện thoại (iPhone / Android) */}
+      <div className="mobile-view-tabs">
+        <button 
+          className={`mobile-tab-btn ${mobileTab === 'question' ? 'active' : ''}`}
+          onClick={() => setMobileTab('question')}
+        >
+          ✍️ Câu Hỏi ({currentIndex + 1}/{totalCount})
+        </button>
+        <button 
+          className={`mobile-tab-btn ${mobileTab === 'passage' ? 'active' : ''}`}
+          onClick={() => setMobileTab('passage')}
+        >
+          📄 Bài Đọc (Part {activePart.part_number})
+        </button>
+        <button 
+          className={`mobile-tab-btn ${mobileTab === 'both' ? 'active' : ''}`}
+          onClick={() => setMobileTab('both')}
+        >
+          📱 Cả Hai
+        </button>
+      </div>
+
       {/* Main Exam Split View (2 Boxes) */}
-      <div className="exam-layout">
+      <div className={`exam-layout ${mobileTab === 'passage' ? 'show-passage-only' : mobileTab === 'question' ? 'show-question-only' : ''}`}>
         {/* Box Cột Trái: BÀI ĐỌC (Passage Box) */}
         <div className="passage-panel">
           {/* Part Selection Tabs (Nếu luyện cả đề thì có 4 tabs, nếu luyện 1 part thì hiện nhãn Part đó) */}

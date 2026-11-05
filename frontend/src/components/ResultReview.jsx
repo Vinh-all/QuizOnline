@@ -59,6 +59,7 @@ export default function ResultReview({ attemptId, onBackToTests, onRetake }) {
     <div className="container animate-fade" style={{ padding: '30px 24px 60px' }}>
       {/* Score Summary Box */}
       <div 
+        className="score-summary-card"
         style={{
           background: 'linear-gradient(135deg, #1e1b4b, #312e81)',
           borderRadius: 'var(--radius-xl)',

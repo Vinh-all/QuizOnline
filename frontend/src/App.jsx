@@ -98,6 +98,7 @@ export default function App() {
         <main className="container animate-fade" style={{ padding: '40px 24px 60px' }}>
           {/* Hero Banner */}
           <div 
+            className="hero-banner"
             style={{
               background: 'linear-gradient(135deg, #312e81, #4338ca 60%, #6366f1)',
               borderRadius: 'var(--radius-xl)',
@@ -113,7 +114,7 @@ export default function App() {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', padding: '6px 14px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '16px' }}>
                 <Sparkles size={16} /> Ngân hàng đề thi tiếng Anh 3 chuẩn hóa
               </div>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '8px' }}>
+              <h1 className="hero-title" style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '8px' }}>
                 Hệ Thống Luyện Thi QuizOnline (5 Practice Tests)
               </h1>
               <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fde047', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>

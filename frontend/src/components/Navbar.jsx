@@ -28,7 +28,7 @@ export default function Navbar({ user, onOpenLogin, onLogout, onNavigate, curren
         </div>
 
         {/* Navigation Items */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button 
             onClick={() => onNavigate('tests')}
             style={{
