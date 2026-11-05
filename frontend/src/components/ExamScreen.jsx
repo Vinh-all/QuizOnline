@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, ChevronLeft, ChevronRight, CheckSquare, AlertTriangle, Send } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, CheckSquare, AlertTriangle, Send, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function ExamScreen({ examData, onSubmitExam, onExit }) {
@@ -98,8 +98,24 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
 
   // Lấy bài đọc đang hiển thị theo tab
   const activePart = parts.find((p) => p.id === selectedPartId) || parts[0];
-  const answeredCount = Object.keys(userAnswers).length;
+  const answeredCount = Object.keys(userAnswers).filter((k) => !!userAnswers[k]?.selected_key).length;
   const totalCount = flatQuestions.length;
+  const allAnswered = answeredCount === totalCount && totalCount > 0;
+  const firstUnansweredIndex = flatQuestions.findIndex((q) => !userAnswers[q.id] || !userAnswers[q.id].selected_key);
+
+  // Xử lý khi bấm nút Nộp bài ở cuối trang (chuyển từ nút Câu tiếp khi đến câu cuối)
+  // BẮT BUỘC thí sinh phải trả lời đủ tất cả các câu hỏi
+  const handleBottomSubmitClick = () => {
+    if (!allAnswered) {
+      const remaining = totalCount - answeredCount;
+      alert(`⚠️ Nút nộp bài này bắt buộc bạn phải trả lời đủ tất cả ${totalCount} câu hỏi! Hiện còn ${remaining} câu chưa làm.\n\nHệ thống sẽ tự động chuyển bạn đến câu chưa chọn đáp án.\n(Mẹo: Bạn có thể dùng nút "Nộp Bài Thi" ở thanh trên cùng nếu muốn nộp bài sớm).`);
+      if (firstUnansweredIndex !== -1) {
+        setCurrentIndex(firstUnansweredIndex);
+      }
+      return;
+    }
+    setShowSubmitModal(true);
+  };
 
   return (
     <div className="container" style={{ paddingBottom: '30px' }}>
@@ -284,23 +300,48 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
                 <ChevronLeft size={18} /> Câu trước
               </button>
 
-              <button
-                disabled={currentIndex === totalCount - 1}
-                onClick={() => setCurrentIndex((prev) => Math.min(totalCount - 1, prev + 1))}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '10px 16px',
-                  borderRadius: '8px',
-                  background: 'var(--primary)',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  fontSize: '0.88rem',
-                }}
-              >
-                Câu tiếp <ChevronRight size={18} />
-              </button>
+              {currentIndex < totalCount - 1 ? (
+                <button
+                  onClick={() => setCurrentIndex((prev) => Math.min(totalCount - 1, prev + 1))}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    background: 'var(--primary)',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                  }}
+                >
+                  Câu tiếp <ChevronRight size={18} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleBottomSubmitClick}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    background: allAnswered 
+                      ? 'linear-gradient(135deg, #059669, #10b981)' 
+                      : '#f1f5f9',
+                    color: allAnswered ? '#ffffff' : '#475569',
+                    border: allAnswered ? 'none' : '1.5px solid #cbd5e1',
+                    fontWeight: 800,
+                    fontSize: '0.88rem',
+                    boxShadow: allAnswered ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
+                    cursor: 'pointer',
+                  }}
+                  title={allAnswered ? 'Đã làm đủ tất cả các câu - Bấm để nộp bài' : `Bắt buộc chọn đủ ${totalCount} câu để nộp bằng nút này (Đã làm: ${answeredCount}/${totalCount})`}
+                >
+                  <CheckCircle2 size={18} color={allAnswered ? '#ffffff' : '#64748b'} />
+                  {allAnswered ? 'Nộp Bài Thi' : `Nộp Bài (${answeredCount}/${totalCount})`}
+                </button>
+              )}
             </div>
 
             {/* Question Palette Box */}
