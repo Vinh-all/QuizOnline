@@ -113,9 +113,12 @@ export default function App() {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', padding: '6px 14px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '16px' }}>
                 <Sparkles size={16} /> Ngân hàng đề thi tiếng Anh 3 chuẩn hóa
               </div>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '16px' }}>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '8px' }}>
                 Hệ Thống Luyện Thi QuizOnline (5 Practice Tests)
               </h1>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fde047', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                ✍️ Tác giả: Lý Anh Vinh
+              </div>
               <p style={{ fontSize: '1.05rem', opacity: 0.9, lineHeight: 1.6, marginBottom: '24px' }}>
                 Trọn bộ 5 đề thi với 20 bài đọc tiếng Anh và 200 câu hỏi trắc nghiệm có lời giải thích chi tiết, 
                 dẫn chứng bài đọc và dịch nghĩa song ngữ Anh - Việt. Hỗ trợ bấm giờ, trộn đề và chấm điểm tự động.
@@ -208,6 +211,23 @@ export default function App() {
           setUser(loggedInUser);
         }}
       />
+
+      {/* Footer */}
+      {currentView !== 'exam' && (
+        <footer style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', padding: '24px 0', background: '#ffffff', textAlign: 'center' }}>
+          <div className="container">
+            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--primary)' }}>
+              QuizOnline • Hệ Thống Luyện Thi Tiếng Anh 3
+            </div>
+            <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b', marginTop: '4px' }}>
+              Tác giả: <span style={{ color: '#4f46e5' }}>Lý Anh Vinh</span>
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+              Trọn bộ 5 Practice Tests chuẩn hóa (200 câu hỏi trắc nghiệm & lời giải chi tiết)
+            </div>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }

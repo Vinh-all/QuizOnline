@@ -15,8 +15,13 @@ export default function Navbar({ user, onOpenLogin, onLogout, onNavigate, curren
             <BookOpen size={24} />
           </div>
           <div>
-            <div style={{ lineHeight: 1.2 }}>QuizOnline</div>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+            <div style={{ lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>QuizOnline</span>
+            </div>
+            <span style={{ fontSize: '0.78rem', color: '#4f46e5', fontWeight: 700, display: 'block', lineHeight: 1.3 }}>
+              Tác giả: Lý Anh Vinh
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500, display: 'block', lineHeight: 1.2 }}>
               Tiếng Anh 3 • Luyện Thi Trắc Nghiệm
             </span>
           </div>
