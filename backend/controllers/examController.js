@@ -10,9 +10,9 @@ function shuffleArray(array) {
   return arr;
 }
 
-// Bắt đầu làm bài thi (Tạo lượt thi mới & nạp câu hỏi bảo mật)
+// Bắt đầu làm bài thi (Hỗ trợ toàn bộ đề HOẶC luyện từng Part riêng lẻ)
 exports.startExam = async (req, res) => {
-  const { test_id } = req.body;
+  const { test_id, part_number = null, is_timed = false } = req.body;
   const user_id = req.user.id;
 
   if (!test_id) {
@@ -33,20 +33,24 @@ exports.startExam = async (req, res) => {
     }
     const test = testRes.rows[0];
 
-    // 2. Tạo một lượt thi mới trong exam_attempts
-    const attemptRes = await db.query(
-      `INSERT INTO exam_attempts (user_id, test_id, started_at, total_questions, status)
-       VALUES ($1, $2, CURRENT_TIMESTAMP, 40, 'in_progress')
-       RETURNING *`,
-      [user_id, test_id]
-    );
-    const attempt = attemptRes.rows[0];
+    // 2. Lấy các phần đọc (test_parts) - Lọc theo part_number nếu thí sinh chọn luyện riêng
+    let partsQuery = 'SELECT id, part_number, title, passage_text FROM test_parts WHERE test_id = $1';
+    const queryParams = [test_id];
 
-    // 3. Lấy tất cả các phần đọc và câu hỏi
-    const partsRes = await db.query(
-      'SELECT id, part_number, title, passage_text FROM test_parts WHERE test_id = $1 ORDER BY part_number ASC',
-      [test_id]
-    );
+    if (part_number) {
+      partsQuery += ' AND part_number = $2 ORDER BY part_number ASC';
+      queryParams.push(part_number);
+    } else {
+      partsQuery += ' ORDER BY part_number ASC';
+    }
+
+    const partsRes = await db.query(partsQuery, queryParams);
+    if (partsRes.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `Không tìm thấy Phần thi số ${part_number} trong đề này!`,
+      });
+    }
 
     const parts = [];
     let globalQuestions = [];
@@ -95,19 +99,35 @@ exports.startExam = async (req, res) => {
       });
     }
 
+    const totalQuestions = globalQuestions.length;
+    // Thời gian: Nếu luyện 1 part: 15 phút nếu có giới hạn; nếu cả đề: 60 phút
+    const timeLimitMinutes = is_timed ? (part_number ? 15 : test.time_limit_minutes) : 0;
+
+    // 3. Tạo một lượt thi mới trong exam_attempts
+    const attemptRes = await db.query(
+      `INSERT INTO exam_attempts (user_id, test_id, part_number, started_at, total_questions, status)
+       VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4, 'in_progress')
+       RETURNING *`,
+      [user_id, test_id, part_number || null, totalQuestions]
+    );
+    const attempt = attemptRes.rows[0];
+
     return res.status(201).json({
       success: true,
       message: 'Bắt đầu làm bài thi thành công!',
       attempt_id: attempt.id,
+      part_number: part_number || null,
+      is_timed: !!is_timed,
       test: {
         id: test.id,
-        title: test.title,
+        title: part_number ? `${test.title} - Part ${part_number}` : test.title,
+        raw_title: test.title,
         description: test.description,
-        time_limit_minutes: test.time_limit_minutes,
+        time_limit_minutes: timeLimitMinutes,
       },
       started_at: attempt.started_at,
       parts,
-      total_questions: globalQuestions.length,
+      total_questions: totalQuestions,
     });
   } catch (error) {
     console.error('Lỗi bắt đầu bài thi:', error);
@@ -157,7 +177,7 @@ exports.submitExam = async (req, res) => {
     let correctCount = 0;
     const gradedDetails = [];
 
-    // Lấy toàn bộ đáp án đúng của đề thi từ CSDL
+    // Lấy đáp án đúng của đề (hoặc chỉ part tương ứng nếu thi riêng part)
     const correctOptionsRes = await db.query(`
       SELECT 
         q.id AS question_id,
@@ -170,8 +190,8 @@ exports.submitExam = async (req, res) => {
       FROM questions q
       JOIN question_options qo ON qo.question_id = q.id
       JOIN test_parts tp ON tp.id = q.test_part_id
-      WHERE tp.test_id = $1 AND qo.is_correct = true;
-    `, [attempt.test_id]);
+      WHERE tp.test_id = $1 AND ($2::int IS NULL OR tp.part_number = $2) AND qo.is_correct = true;
+    `, [attempt.test_id, attempt.part_number]);
 
     const correctMap = {};
     correctOptionsRes.rows.forEach(r => {
@@ -207,7 +227,7 @@ exports.submitExam = async (req, res) => {
     }
 
     // 3. Tính điểm (Thang điểm 10)
-    const totalQuestions = correctOptionsRes.rows.length || 40;
+    const totalQuestions = attempt.total_questions || correctOptionsRes.rows.length || 10;
     const score = Number(((correctCount / totalQuestions) * 10).toFixed(2));
 
     // 4. Cập nhật trạng thái lượt thi trong exam_attempts
@@ -250,7 +270,11 @@ exports.getExamHistory = async (req, res) => {
       SELECT 
         ea.id,
         ea.test_id,
-        t.title AS test_title,
+        ea.part_number,
+        CASE 
+          WHEN ea.part_number IS NOT NULL THEN t.title || ' (Part ' || ea.part_number || ')'
+          ELSE t.title 
+        END AS test_title,
         ea.started_at,
         ea.submitted_at,
         ea.score,
@@ -285,7 +309,11 @@ exports.getAttemptDetail = async (req, res) => {
 
   try {
     const attemptRes = await db.query(
-      `SELECT ea.*, t.title AS test_title 
+      `SELECT ea.*, 
+        CASE 
+          WHEN ea.part_number IS NOT NULL THEN t.title || ' (Part ' || ea.part_number || ')'
+          ELSE t.title 
+        END AS test_title
        FROM exam_attempts ea 
        JOIN tests t ON t.id = ea.test_id 
        WHERE ea.id = $1 AND (ea.user_id = $2 OR $3 IN ('admin', 'teacher'))`,
@@ -301,7 +329,7 @@ exports.getAttemptDetail = async (req, res) => {
 
     const attempt = attemptRes.rows[0];
 
-    // Lấy câu hỏi, đáp án đã chọn và lời giải
+    // Lấy câu hỏi, đáp án đã chọn và lời giải (lọc theo part_number nếu có)
     const query = `
       SELECT 
         q.id AS question_id,
@@ -319,19 +347,16 @@ exports.getAttemptDetail = async (req, res) => {
       JOIN test_parts tp ON tp.id = q.test_part_id
       LEFT JOIN exam_answers ans ON ans.question_id = q.id AND ans.attempt_id = $1
       LEFT JOIN question_options correct_qo ON correct_qo.question_id = q.id AND correct_qo.is_correct = true
-      WHERE tp.test_id = $2
+      WHERE tp.test_id = $2 AND ($3::int IS NULL OR tp.part_number = $3)
       ORDER BY q.question_number ASC;
     `;
 
-    const detailRes = await db.query(query, [attempt_id, attempt.test_id]);
-
-    // Gom nhóm theo part
-    const questionsWithPart = detailRes.rows;
+    const detailRes = await db.query(query, [attempt_id, attempt.test_id, attempt.part_number]);
 
     return res.json({
       success: true,
       attempt,
-      review: questionsWithPart,
+      review: detailRes.rows,
     });
   } catch (error) {
     console.error('Lỗi xem chi tiết lượt thi:', error);
@@ -341,4 +366,3 @@ exports.getAttemptDetail = async (req, res) => {
     });
   }
 };
-

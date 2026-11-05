@@ -35,15 +35,15 @@ export default function App() {
     loadTests();
   }, []);
 
-  // Xử lý khi nhấn bắt đầu thi
-  const handleStartTest = async (test) => {
+  // Xử lý khi nhấn bắt đầu thi (Hỗ trợ cả đề HOẶC luyện riêng từng Part, Có hoặc Không giới hạn giờ)
+  const handleStartTest = async (test, part_number = null, is_timed = false) => {
     if (!user) {
       setIsLoginOpen(true);
       return;
     }
 
     try {
-      const data = await apiClient.startExam(test.id);
+      const data = await apiClient.startExam(test.id, part_number, is_timed);
       setExamData(data);
       setCurrentView('exam');
     } catch (err) {

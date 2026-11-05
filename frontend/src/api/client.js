@@ -56,9 +56,9 @@ export const apiClient = {
   getTestById: (id) => apiClient.request(`/tests/${id}`),
 
   // Exam
-  startExam: (test_id) => apiClient.request('/exams/start', {
+  startExam: (test_id, part_number = null, is_timed = false) => apiClient.request('/exams/start', {
     method: 'POST',
-    body: JSON.stringify({ test_id }),
+    body: JSON.stringify({ test_id, part_number, is_timed }),
   }),
 
   submitExam: (attempt_id, answers) => apiClient.request('/exams/submit', {

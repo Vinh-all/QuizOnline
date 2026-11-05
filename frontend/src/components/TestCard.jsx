@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, HelpCircle, BookOpen, Shuffle, PlayCircle, CheckCircle2 } from 'lucide-react';
+import { Clock, HelpCircle, BookOpen, Shuffle, PlayCircle, Zap, Timer } from 'lucide-react';
 
 export default function TestCard({ test, index, onStartTest }) {
   // Danh sách chủ đề bài đọc tương ứng với từng Test
@@ -57,63 +57,141 @@ export default function TestCard({ test, index, onStartTest }) {
         </div>
 
         {/* Title */}
-        <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--dark)', marginBottom: '8px' }}>
+        <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--dark)', marginBottom: '8px' }}>
           {test.title}
         </h3>
         <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-          Bộ đề trắc nghiệm Kỹ năng Đọc Tiếng Anh 3 bóc tách đầy đủ từ tài liệu chuẩn.
+          Bộ đề trắc nghiệm Kỹ năng Đọc Tiếng Anh 3 (40 câu hỏi, 4 bài đọc).
         </p>
 
-        {/* 4 Passages Box */}
-        <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', border: '1px solid #f1f5f9' }}>
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>
-            📖 4 Phần Đọc Hiểu (Reading Passages):
+        {/* 4 Passages Box with Direct Practice per Part */}
+        <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '14px', marginBottom: '20px', border: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              📖 Luyện Từng Part Riêng Lẻ (10 câu/part):
+            </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {topics.map((t, idx) => (
-              <div key={idx} style={{ fontSize: '0.82rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary)', flexShrink: 0 }}></span>
-                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t}</span>
-              </div>
-            ))}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {topics.map((t, idx) => {
+              const partNum = idx + 1;
+              return (
+                <div 
+                  key={idx} 
+                  style={{ 
+                    background: '#ffffff', 
+                    borderRadius: '8px', 
+                    padding: '8px 10px', 
+                    border: '1px solid #e2e8f0',
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    gap: '8px' 
+                  }}
+                >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {t}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => onStartTest(test, partNum, false)}
+                      title={`Luyện riêng Part ${partNum} không giới hạn thời gian`}
+                      style={{
+                        padding: '4px 8px',
+                        background: '#ecfdf5',
+                        color: '#047857',
+                        border: '1px solid #a7f3d0',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                      }}
+                    >
+                      Luyện Tự Do
+                    </button>
+                    <button
+                      onClick={() => onStartTest(test, partNum, true)}
+                      title={`Thi riêng Part ${partNum} bấm giờ 15 phút`}
+                      style={{
+                        padding: '4px 8px',
+                        background: '#e0e7ff',
+                        color: '#4338ca',
+                        border: '1px solid #c7d2fe',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                      }}
+                    >
+                      Bấm Giờ 15p
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Meta Stats Badges */}
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', color: '#047857', fontWeight: 700, background: '#ecfdf5', padding: '4px 10px', borderRadius: '6px' }}>
-            <Clock size={16} color="#047857" />
-            Không Giới Hạn Thời Gian
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#047857', fontWeight: 700, background: '#ecfdf5', padding: '4px 10px', borderRadius: '6px' }}>
+            <Clock size={15} color="#047857" />
+            Có Luyện Tự Do & Bấm Giờ
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-            <HelpCircle size={16} color="var(--primary)" />
-            {test.questions_count || 40} Câu hỏi
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+            <HelpCircle size={15} color="var(--primary)" />
+            {test.questions_count || 40} Câu cả đề
           </div>
         </div>
       </div>
 
-      {/* Action Button */}
-      <button 
-        onClick={() => onStartTest(test)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          padding: '12px',
-          background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-          color: '#ffffff',
-          borderRadius: '10px',
-          fontWeight: 700,
-          fontSize: '0.98rem',
-          boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
-        }}
-      >
-        <PlayCircle size={20} />
-        Bắt Đầu Làm Bài
-      </button>
+      {/* TWO MAIN BUTTONS FOR FULL EXAM (40 CÂU) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* Nút 1: Luyện toàn bộ đề không giới hạn thời gian */}
+        <button 
+          onClick={() => onStartTest(test, null, false)}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            padding: '12px',
+            background: 'linear-gradient(135deg, #059669, #10b981)',
+            color: '#ffffff',
+            borderRadius: '10px',
+            fontWeight: 700,
+            fontSize: '0.94rem',
+            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+          }}
+        >
+          <Zap size={18} />
+          Luyện Đề Tự Do (Không Giới Hạn Giờ)
+        </button>
+
+        {/* Nút 2: Thi thử toàn bộ đề có bấm giờ 60 phút */}
+        <button 
+          onClick={() => onStartTest(test, null, true)}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            padding: '12px',
+            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+            color: '#ffffff',
+            borderRadius: '10px',
+            fontWeight: 700,
+            fontSize: '0.94rem',
+            boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+          }}
+        >
+          <Timer size={18} />
+          Thi Thử (Bấm Giờ 60 Phút)
+        </button>
+      </div>
     </div>
   );
 }
-

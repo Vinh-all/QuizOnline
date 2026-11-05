@@ -22,9 +22,9 @@ export default function ExamScreen({ examData, onSubmitExam, onExit }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedPartId, setSelectedPartId] = useState(parts[0]?.id || null);
   const [userAnswers, setUserAnswers] = useState({}); // { [question_id]: { selected_key, selected_option_id } }
-  const [isUnlimitedTime, setIsUnlimitedTime] = useState(true); // Mặc định không giới hạn thời gian
+  const [isUnlimitedTime, setIsUnlimitedTime] = useState(examData.is_timed !== undefined ? !examData.is_timed : true);
   const [elapsedTime, setElapsedTime] = useState(0); // Thời gian đã làm bài
-  const [timeLeft, setTimeLeft] = useState((test.time_limit_minutes || 60) * 60);
+  const [timeLeft, setTimeLeft] = useState((test.time_limit_minutes || (examData.part_number ? 15 : 60)) * 60);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
